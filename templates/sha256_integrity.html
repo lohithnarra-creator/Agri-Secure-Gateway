@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}SHA-256 Integrity Verification | AGRI-SECURE GATEWAY{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-white mb-0" style="letter-spacing: -0.02em;">SHA-256 Binary Integrity Verification</h2>
+            <span class="badge badge-cyber badge-status-online font-mono">256-BIT HASH ENGINE</span>
+        </div>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.92rem;">
+            Deterministic Cryptographic Hash Digest • <span class="text-cyber-green">FIPS PUB 180-4 Standard</span>
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('rsa_signatures_view') }}" class="btn btn-cyber-outline">
+            <i class="bi bi-key-fill"></i> RSA Signatures Studio
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: SHA-256 Generator & Avalanche Effect Demo -->
+    <div class="col-lg-7">
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-fingerprint text-cyber-cyan"></i>
+                        SHA-256 Digest Calculator & Avalanche Demo
+                    </h5>
+                    <div class="panel-subtitle">Generate cryptographic hash digests from firmware binaries</div>
+                </div>
+                <span class="badge bg-dark border border-secondary text-cyber-cyan font-mono">64 HEX CHARACTERS</span>
+            </div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <label class="form-label-cyber">Firmware Binary Input String</label>
+                    <textarea id="shaInputPayload" class="form-control form-control-cyber font-mono" rows="4">AGRI-FIRMWARE-IMAGE-v1.0.4-SOIL-MOISTURE-ANALYZER-BUILD-2026</textarea>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <button class="btn btn-cyber" id="btnComputeSha">
+                        <i class="bi bi-cpu-fill"></i> Compute SHA-256 Hash
+                    </button>
+                    <button class="btn btn-cyber-danger" id="btnDemonstrateAvalanche">
+                        <i class="bi bi-lightning-charge-fill"></i> Demonstrate Avalanche Effect (Mutate 1 Char)
+                    </button>
+                </div>
+
+                <!-- Capstone Report Screenshot-Ready Output Panel -->
+                <div id="shaOutputPanel" class="screenshot-panel">
+                    <span class="screenshot-panel-badge">REPORT CAPTURE READY</span>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <strong class="text-white d-flex align-items-center gap-2">
+                            <i class="bi bi-hash text-cyber-cyan"></i> SHA-256 Cryptographic Digest
+                        </strong>
+                        <span class="badge badge-cyber badge-auth-verified" id="shaLengthBadge">256 BITS</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-dim" style="font-size: 0.75rem;">COMPUTED 64-CHARACTER HEX DIGEST:</span>
+                        <div class="font-mono text-cyber-green p-3 rounded text-break" style="background: rgba(0,0,0,0.5); font-size: 0.92rem;" id="shaHexOutput">
+                            Click 'Compute SHA-256 Hash' to calculate...
+                        </div>
+                    </div>
+
+                    <div id="avalancheComparisonBox" class="p-3 rounded bg-dark border border-secondary d-none">
+                        <div class="text-warning fw-bold mb-1" style="font-size: 0.84rem;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Avalanche Effect Visualized:
+                        </div>
+                        <div class="text-muted" style="font-size: 0.78rem;">
+                            Notice how changing just <strong>1 single character</strong> produces an entirely different, unpredictable 64-character hash digest with ~50% bit flip!
+                        </div>
+                        <div class="mt-2 text-dim font-mono" style="font-size: 0.74rem;">
+                            Previous Hash: <span class="text-white" id="prevHashOutput">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Dual Hash Comparison Tool & Theory -->
+    <div class="col-lg-5">
+        <!-- Dual Hash Comparator Tool -->
+        <div class="cyber-panel mb-4">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 1rem;">
+                    <i class="bi bi-arrow-left-right text-cyber-green"></i>
+                    Dual-Hash Verification Comparator
+                </h5>
+            </div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <label class="form-label-cyber">Original Vendor Hash</label>
+                    <input type="text" id="cmpHashOriginal" class="form-control form-control-cyber font-mono" style="font-size: 0.8rem;" placeholder="Paste original SHA-256 hash...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label-cyber">Received Firmware Hash</label>
+                    <input type="text" id="cmpHashReceived" class="form-control form-control-cyber font-mono" style="font-size: 0.8rem;" placeholder="Paste received SHA-256 hash...">
+                </div>
+                <button class="btn btn-cyber-cyan w-100 justify-content-center mb-3" id="btnCompareHashes">
+                    <i class="bi bi-shield-check"></i> Compare Integrity
+                </button>
+                <div id="cmpResultAlert" class="cyber-alert d-none py-2 mb-0" style="font-size: 0.82rem;"></div>
+            </div>
+        </div>
+
+        <!-- SHA-256 Security Architecture Panel -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 0.95rem;">
+                    <i class="bi bi-info-circle-fill text-cyber-cyan"></i>
+                    Integrity Properties in IoT Security
+                </h5>
+            </div>
+            <div class="p-3" style="font-size: 0.84rem; line-height: 1.6;">
+                <ul class="text-muted ps-3 mb-0" style="font-size: 0.8rem;">
+                    <li><strong>Pre-image Resistance:</strong> Computationally impossible to reverse-engineer firmware binary from its hash.</li>
+                    <li><strong>Collision Resistance:</strong> Virtually impossible for an attacker to craft a malicious binary that produces the same SHA-256 hash.</li>
+                    <li><strong>Avalanche Effect:</strong> Guarantees that any unauthorized microcode alteration during LoRaWAN/Cellular OTA transmission is immediately detected.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let lastHash = "";
+
+    const btnCompute = document.getElementById('btnComputeSha');
+    if (btnCompute) {
+        btnCompute.addEventListener('click', function () {
+            const payload = document.getElementById('shaInputPayload').value;
+            fetch('/api/crypto/sha256', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payload: payload })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    lastHash = document.getElementById('shaHexOutput').textContent;
+                    document.getElementById('shaHexOutput').textContent = data.sha256_hash;
+                    // Auto-fill comparator original hash if empty
+                    const cmpOrig = document.getElementById('cmpHashOriginal');
+                    if (cmpOrig && !cmpOrig.value) cmpOrig.value = data.sha256_hash;
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+
+        // Trigger on load for immediate display
+        btnCompute.click();
+    }
+
+    const btnAvalanche = document.getElementById('btnDemonstrateAvalanche');
+    if (btnAvalanche) {
+        btnAvalanche.addEventListener('click', function () {
+            const input = document.getElementById('shaInputPayload');
+            const prev = document.getElementById('shaHexOutput').textContent;
+            // Mutate last character
+            input.value = input.value.slice(0, -1) + (input.value.slice(-1) === '6' ? '7' : '6');
+
+            fetch('/api/crypto/sha256', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payload: input.value })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('prevHashOutput').textContent = prev;
+                    document.getElementById('shaHexOutput').textContent = data.sha256_hash;
+                    document.getElementById('avalancheComparisonBox').classList.remove('d-none');
+                }
+            });
+        });
+    }
+
+    const btnCompare = document.getElementById('btnCompareHashes');
+    if (btnCompare) {
+        btnCompare.addEventListener('click', function () {
+            const h1 = (document.getElementById('cmpHashOriginal').value || '').trim().toLowerCase();
+            const h2 = (document.getElementById('cmpHashReceived').value || '').trim().toLowerCase();
+            const alertEl = document.getElementById('cmpResultAlert');
+            alertEl.classList.remove('d-none');
+
+            if (!h1 || !h2) {
+                alertEl.className = 'cyber-alert cyber-alert-warning py-2 mb-0';
+                alertEl.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i> Please provide both hashes to compare.';
+                return;
+            }
+
+            if (h1 === h2) {
+                alertEl.className = 'cyber-alert cyber-alert-success py-2 mb-0';
+                alertEl.innerHTML = '<i class="bi bi-shield-check me-1"></i> INTEGRITY MATCH: Hashes are identical. Zero tampering detected.';
+            } else {
+                alertEl.className = 'cyber-alert cyber-alert-danger py-2 mb-0';
+                alertEl.innerHTML = '<i class="bi bi-shield-x me-1"></i> INTEGRITY VIOLATION: Hashes differ! Firmware has been corrupted or modified.';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

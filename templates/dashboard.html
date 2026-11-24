@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}SOC Dashboard Overview | AGRI-SECURE GATEWAY{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-white mb-0" style="letter-spacing: -0.02em;">Security Operations Center</h2>
+            <span class="badge badge-cyber badge-status-online font-mono">SOC SECURED</span>
+        </div>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.92rem;">
+            Executive Cryptographic Security & Telemetry Overview • <span class="text-cyber-green">SDG 2: Zero Hunger</span>
+        </p>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <a href="{{ url_for('devices_view') }}" class="btn btn-cyber-outline">
+            <i class="bi bi-cpu"></i> Manage 10 IoT Nodes
+        </a>
+        <a href="{{ url_for('ota_updates_view') }}" class="btn btn-cyber">
+            <i class="bi bi-arrow-up-circle-fill"></i> Secure OTA Dispatch
+        </a>
+    </div>
+</div>
+
+<!-- Primary Metric Stat Cards (Clickable Navigation Cards) -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Virtual IoT Nodes Fleet -->
+    <div class="col-sm-6 col-xl-3">
+        <a href="{{ url_for('devices_view') }}" class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Virtual Agri-IoT Nodes</span>
+                <div class="stat-icon text-cyber-green">
+                    <i class="bi bi-cpu-fill"></i>
+                </div>
+            </div>
+            <div class="stat-value font-mono">{{ stats.total }} <span style="font-size: 0.9rem; color: var(--text-dim);">Deployed</span></div>
+            <div class="stat-meta">
+                <i class="bi bi-check-circle-fill text-cyber-green"></i>
+                <span>{{ stats.online }} Online • {{ stats.warning }} Warning • {{ stats.offline }} Offline</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 2: Firmware Integrity -->
+    <div class="col-sm-6 col-xl-3">
+        <a href="{{ url_for('sha256_integrity_view') }}" class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Firmware Integrity</span>
+                <div class="stat-icon text-cyber-cyan">
+                    <i class="bi bi-fingerprint"></i>
+                </div>
+            </div>
+            <div class="stat-value font-mono">{{ stats.integrity_pct }}% <span style="font-size: 0.9rem; color: var(--text-dim);">SHA-256</span></div>
+            <div class="stat-meta">
+                <i class="bi bi-shield-check text-cyber-cyan"></i>
+                <span>Zero bit tampering detected</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 3: RSA Verifications -->
+    <div class="col-sm-6 col-xl-3">
+        <a href="{{ url_for('rsa_signatures_view') }}" class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">RSA-2048 Signatures</span>
+                <div class="stat-icon text-cyber-green">
+                    <i class="bi bi-patch-check-fill"></i>
+                </div>
+            </div>
+            <div class="stat-value font-mono">{{ stats.rsa_verified }} <span style="font-size: 0.9rem; color: var(--text-dim);">Passed</span></div>
+            <div class="stat-meta">
+                <i class="bi bi-shield-exclamation text-warning"></i>
+                <span>{{ stats.rsa_failed }} Verification Rejections Blocked</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Card 4: OTA Updates & Attack Defense -->
+    <div class="col-sm-6 col-xl-3">
+        <a href="{{ url_for('ota_updates_view') }}" class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Secure OTA Updates</span>
+                <div class="stat-icon" style="color: #fbbf24;">
+                    <i class="bi bi-broadcast-pin"></i>
+                </div>
+            </div>
+            <div class="stat-value font-mono" style="color: #fbbf24;">{{ stats.ota_success }} <span style="font-size: 0.9rem; color: var(--text-dim);">Deployed</span></div>
+            <div class="stat-meta">
+                <i class="bi bi-shield-fill-x text-danger"></i>
+                <span class="text-danger fw-semibold">{{ stats.blocked_attacks }} Malicious Flashes Blocked</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Live Telemetry & Health Charts -->
+<div class="row g-4 mb-4">
+    <!-- Telemetry Distribution Bar Chart -->
+    <div class="col-lg-8">
+        <div class="cyber-panel h-100">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-bar-chart-line-fill text-cyber-green"></i>
+                        Agricultural Fleet Telemetry Distribution
+                    </h5>
+                    <div class="panel-subtitle">Multi-node comparison: Soil Moisture (%) and Ambient Humidity (%) across field sectors</div>
+                </div>
+                <a href="{{ url_for('devices_view') }}" class="btn btn-sm btn-cyber-outline py-1 px-3">
+                    <i class="bi bi-arrow-right"></i> View Full Fleet
+                </a>
+            </div>
+            <div class="p-3">
+                <div style="height: 270px; position: relative;">
+                    <canvas id="telemetryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fleet Status Doughnut Chart -->
+    <div class="col-lg-4">
+        <div class="cyber-panel h-100">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-pie-chart-fill text-cyber-cyan"></i>
+                        Device Health Distribution
+                    </h5>
+                    <div class="panel-subtitle">Operational status breakdown</div>
+                </div>
+            </div>
+            <div class="p-3">
+                <div style="height: 270px; position: relative;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cryptographic Status, SDG 2 Summary & Recent Security Events -->
+<div class="row g-4">
+    <!-- Left Column: Cryptographic Infrastructure & SDG 2 Protection Summary -->
+    <div class="col-lg-5">
+        <!-- Cryptographic Security Status -->
+        <div class="cyber-panel mb-4">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 1rem;">
+                    <i class="bi bi-shield-lock-fill text-cyber-green"></i>
+                    Cryptographic Security Status
+                </h5>
+                <span class="badge bg-dark border border-secondary text-cyber-green font-mono">HARDENED</span>
+            </div>
+            <div class="p-3" style="font-size: 0.85rem;">
+                <div class="d-flex align-items-center justify-content-between p-2 rounded mb-2" style="background: rgba(255,255,255,0.03);">
+                    <div>
+                        <strong class="text-white d-block">RSA-2048 Digital Signatures</strong>
+                        <span class="text-muted" style="font-size: 0.78rem;">Vendor Private Key Isolated • PKCS#1 v1.5</span>
+                    </div>
+                    <span class="badge badge-cyber badge-status-online">ACTIVE</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-2 rounded mb-2" style="background: rgba(255,255,255,0.03);">
+                    <div>
+                        <strong class="text-white d-block">SHA-256 Binary Integrity</strong>
+                        <span class="text-muted" style="font-size: 0.78rem;">256-Bit Cryptographic Hash Checks</span>
+                    </div>
+                    <span class="badge badge-cyber badge-status-online">ACTIVE</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between p-2 rounded mb-3" style="background: rgba(255,255,255,0.03);">
+                    <div>
+                        <strong class="text-white d-block">AES-256-GCM Encryption</strong>
+                        <span class="text-muted" style="font-size: 0.78rem;">Authenticated Galois/Counter Mode</span>
+                    </div>
+                    <span class="badge badge-cyber badge-status-online">ACTIVE</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('rsa_signatures_view') }}" class="btn btn-sm btn-cyber-outline flex-fill text-center">
+                        RSA Studio
+                    </a>
+                    <a href="{{ url_for('aes256_encryption_view') }}" class="btn btn-sm btn-cyber-cyan flex-fill text-center">
+                        AES-GCM Studio
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SDG 2 Zero Hunger Protection Summary -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 1rem;">
+                    <i class="bi bi-globe-americas text-warning"></i>
+                    SDG 2 Zero Hunger Impact
+                </h5>
+            </div>
+            <div class="p-3" style="font-size: 0.85rem; line-height: 1.6;">
+                <p class="text-muted mb-2">
+                    Agricultural IoT mesh networks control automated irrigation valves, soil pH probes, and greenhouse climate modules. A single rogue firmware injection could cause catastrophic crop failure.
+                </p>
+                <div class="p-2 rounded bg-dark border border-secondary text-white font-mono" style="font-size: 0.78rem;">
+                    <span class="text-cyber-green">✓</span> Crop Disruptions: <strong class="text-cyber-green">0% (Protected)</strong><br>
+                    <span class="text-cyber-green">✓</span> Rogue Injections Blocked: <strong class="text-warning">{{ stats.blocked_attacks }} Attacks</strong><br>
+                    <span class="text-cyber-green">✓</span> Verified Mesh Fleet: <strong class="text-cyber-cyan">10 Virtual Nodes</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Recent Security Events Feed & Update History -->
+    <div class="col-lg-7">
+        <div class="cyber-panel h-100">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-journal-text text-cyber-green"></i>
+                        Recent Security Events & Firmware Update History
+                    </h5>
+                    <div class="panel-subtitle">Real-time audit telemetry from bootloaders and cryptoprocessors</div>
+                </div>
+                <a href="{{ url_for('audit_logs_view') }}" class="btn btn-sm btn-cyber-outline py-1 px-3">
+                    <i class="bi bi-list-ul"></i> All Logs
+                </a>
+            </div>
+
+            <div class="p-3">
+                <div class="table-responsive">
+                    <table class="cyber-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Node ID</th>
+                                <th>Security Action</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td class="font-mono text-muted" style="font-size: 0.76rem;">{{ log.timestamp }}</td>
+                                <td>
+                                    <span class="font-mono text-white fw-bold">{{ log.device_id }}</span>
+                                </td>
+                                <td>
+                                    <div class="text-white" style="font-size: 0.84rem;">{{ log.action }}</div>
+                                    <div class="text-dim font-mono" style="font-size: 0.72rem;">{{ log.digital_signature }}</div>
+                                </td>
+                                <td>
+                                    {% if log.status == 'SUCCESS' %}
+                                        <span class="badge badge-cyber badge-status-online" style="font-size: 0.65rem;">SUCCESS</span>
+                                    {% elif log.status == 'REJECTED' %}
+                                        <span class="badge badge-cyber badge-status-offline" style="font-size: 0.65rem;">BLOCKED</span>
+                                    {% else %}
+                                        <span class="badge badge-cyber badge-status-warning" style="font-size: 0.65rem;">{{ log.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

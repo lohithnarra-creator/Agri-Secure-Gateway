@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Security Audit Logs | AGRI-SECURE GATEWAY{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-white mb-0" style="letter-spacing: -0.02em;">Security Audit Logs</h2>
+            <span class="badge badge-cyber badge-status-online font-mono" id="auditTotalBadge">{{ logs|length }} EVENTS LOGGED</span>
+        </div>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.92rem;">
+            Immutable Cryptographic & Access Event Trail • <span class="text-cyber-green">Persistent Backend Storage</span>
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('api_logs_export') }}" class="btn btn-cyber-outline">
+            <i class="bi bi-download"></i> Export Logs to CSV
+        </a>
+    </div>
+</div>
+
+<!-- Main Audit Log Panel with Real-time Filters -->
+<div class="cyber-panel mb-4">
+    <div class="cyber-panel-header">
+        <div>
+            <h5 class="panel-title">
+                <i class="bi bi-journal-text text-cyber-green"></i>
+                Historical Cryptographic & Security Operations Log
+            </h5>
+            <div class="panel-subtitle">Audited record of authentication handshakes, digital signatures, integrity checks, and OTA events</div>
+        </div>
+        <!-- Filtering Controls -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-sm-0">
+            <div class="input-group input-group-sm" style="max-width: 220px;">
+                <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" id="logSearchInput" class="form-control form-control-cyber form-control-sm" placeholder="Search event, device, action...">
+            </div>
+            <select id="logCategoryFilter" class="form-select form-select-cyber form-select-sm" style="width: auto;">
+                <option value="ALL">All Categories</option>
+                <option value="AUTHENTICATION">Authentication</option>
+                <option value="CRYPTOGRAPHY">Cryptography</option>
+                <option value="OTA_UPDATE">OTA Updates</option>
+                <option value="DEVICE_MANAGEMENT">Device Management</option>
+            </select>
+            <select id="logStatusFilter" class="form-select form-select-cyber form-select-sm" style="width: auto;">
+                <option value="ALL">All Status</option>
+                <option value="SUCCESS">SUCCESS</option>
+                <option value="REJECTED">REJECTED</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="cyber-table" id="auditLogsTable">
+            <thead>
+                <tr>
+                    <th>Log ID & Timestamp</th>
+                    <th>Device ID / Entity</th>
+                    <th>Category</th>
+                    <th>Action Performed</th>
+                    <th>SHA-256 Digest & Protocol</th>
+                    <th>Status</th>
+                    <th>Security Diagnostics / Message</th>
+                </tr>
+            </thead>
+            <tbody id="auditLogsTableBody">
+                {% for log in logs %}
+                <tr data-category="{{ log.category or 'GENERAL' }}" data-status="{{ log.status }}" data-threat="{{ log.threat_level or 'LOW' }}">
+                    <td>
+                        <div class="font-mono text-cyber-cyan fw-bold" style="font-size: 0.84rem;">{{ log.id }}</div>
+                        <div class="text-muted font-mono" style="font-size: 0.74rem;">{{ log.timestamp }}</div>
+                    </td>
+                    <td>
+                        <div class="font-mono text-white fw-bold d-flex align-items-center gap-1">
+                            <i class="bi bi-cpu text-cyber-green"></i> {{ log.device_id }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-dark border border-secondary text-cyber-cyan font-mono" style="font-size: 0.65rem;">
+                            {{ log.category or 'GENERAL' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="text-white fw-semibold" style="font-size: 0.86rem;">{{ log.action }}</div>
+                    </td>
+                    <td>
+                        <div class="font-mono text-dim" style="font-size: 0.72rem;" title="{{ log.sha256_hash }}">
+                            SHA: {{ log.sha256_hash[:18] }}...
+                        </div>
+                        <div class="font-mono text-white mt-1" style="font-size: 0.74rem;">
+                            {{ log.digital_signature }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if log.status == 'SUCCESS' %}
+                            <span class="badge badge-cyber badge-status-online" style="font-size: 0.68rem;">SUCCESS</span>
+                        {% elif log.status == 'REJECTED' %}
+                            <span class="badge badge-cyber badge-status-offline" style="font-size: 0.68rem;">REJECTED</span>
+                        {% else %}
+                            <span class="badge badge-cyber badge-status-warning" style="font-size: 0.68rem;">{{ log.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="text-muted" style="font-size: 0.82rem;">{{ log.message }}</div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No audit events recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('logSearchInput');
+    const categoryFilter = document.getElementById('logCategoryFilter');
+    const statusFilter = document.getElementById('logStatusFilter');
+    const rows = document.querySelectorAll('#auditLogsTableBody tr');
+
+    function filterLogs() {
+        const query = (searchInput.value || '').toLowerCase().trim();
+        const cat = categoryFilter.value;
+        const stat = statusFilter.value;
+
+        rows.forEach(row => {
+            const rowCat = row.getAttribute('data-category') || 'GENERAL';
+            const rowStat = row.getAttribute('data-status') || '';
+            const rowText = row.textContent.toLowerCase();
+
+            const matchQuery = !query || rowText.includes(query);
+            const matchCat = (cat === 'ALL') || (rowCat === cat);
+            const matchStat = (stat === 'ALL') || (rowStat === stat);
+
+            if (matchQuery && matchCat && matchStat) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterLogs);
+    if (categoryFilter) categoryFilter.addEventListener('change', filterLogs);
+    if (statusFilter) statusFilter.addEventListener('change', filterLogs);
+});
+</script>
+{% endblock %}

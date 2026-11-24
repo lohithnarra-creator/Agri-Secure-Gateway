@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Security Settings & Vault | AGRI-SECURE GATEWAY{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-white mb-0" style="letter-spacing: -0.02em;">Security Settings & Key Vault</h2>
+            <span class="badge badge-cyber badge-status-online font-mono">ROOT VAULT SECURED</span>
+        </div>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.92rem;">
+            Security Officer Credentials, Session Parameters & Asymmetric Key Management
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-cyber">
+            <i class="bi bi-speedometer2"></i> Back to SOC
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Administrator Profile & Password Update Form -->
+    <div class="col-lg-6">
+        <!-- Officer Info Card -->
+        <div class="cyber-panel mb-4">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 1rem;">
+                    <i class="bi bi-person-badge text-cyber-green"></i>
+                    Authenticated Officer Information
+                </h5>
+                <span class="badge badge-cyber badge-status-online">AUTHENTICATED</span>
+            </div>
+            <div class="p-4" style="font-size: 0.88rem;">
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                    <span class="text-muted">Username:</span>
+                    <strong class="text-white font-mono">{{ session.get('user', 'admin') }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                    <span class="text-muted">Assigned Role:</span>
+                    <strong class="text-cyber-green">{{ session.get('role', 'Security Administrator') }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                    <span class="text-muted">Session Login Time:</span>
+                    <span class="font-mono text-white">{{ session.get('login_time', 'Active') }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                    <span class="text-muted">Session Lifetime:</span>
+                    <span class="font-mono text-cyber-cyan">12 Hours (HttpOnly, SameSite=Lax)</span>
+                </div>
+                <div class="d-flex justify-content-between pt-2">
+                    <span class="text-muted">Password Encryption:</span>
+                    <span class="font-mono text-white">Werkzeug Scrypt / PBKDF2</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Form -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title" style="font-size: 1rem;">
+                        <i class="bi bi-key text-cyber-cyan"></i>
+                        Update Security Credentials
+                    </h5>
+                    <div class="panel-subtitle">Change administrative login password with cryptographically secure hash storage</div>
+                </div>
+            </div>
+            <div class="p-4">
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label class="form-label-cyber">Current Password</label>
+                        <input type="password" id="currentPassword" class="form-control form-control-cyber" required placeholder="Enter current password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label-cyber">New Password</label>
+                        <input type="password" id="newPassword" class="form-control form-control-cyber" required minlength="6" placeholder="Enter new password (min. 6 characters)">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label-cyber">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" class="form-control form-control-cyber" required minlength="6" placeholder="Re-enter new password">
+                    </div>
+                    <div id="passwordAlertBox" class="cyber-alert d-none py-2 mb-3" style="font-size: 0.82rem;"></div>
+                    <button type="submit" class="btn btn-cyber" id="btnSubmitPasswordChange">
+                        <i class="bi bi-shield-check"></i> Save New Credentials
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: RSA Key Management & Cryptographic Spec -->
+    <div class="col-lg-6" id="keystore-section">
+        <!-- Public Key & Key Vault -->
+        <div class="cyber-panel mb-4">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title" style="font-size: 1rem;">
+                        <i class="bi bi-shield-lock text-cyber-green"></i>
+                        Vendor RSA-2048 Root Authority Vault
+                    </h5>
+                    <div class="panel-subtitle">Asymmetric public key distributed to nodes for firmware signature checks</div>
+                </div>
+                <span class="badge bg-dark border border-secondary text-cyber-green font-mono">2048 BITS</span>
+            </div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <label class="form-label-cyber">Vendor Public Key Fingerprint (SHA-256)</label>
+                    <div class="font-mono text-cyber-green p-2 rounded bg-dark border border-secondary text-break" id="settingsFingerprintDisplay" style="font-size: 0.84rem;">
+                        {{ fingerprint }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label-cyber mb-0">Public Key PEM (SubjectPublicKeyInfo)</label>
+                        <button class="btn btn-sm btn-cyber-outline py-0 px-2" onclick="navigator.clipboard.writeText(document.getElementById('settingsPublicPemText').textContent); alert('Public key copied to clipboard!');">
+                            <i class="bi bi-clipboard"></i> Copy PEM
+                        </button>
+                    </div>
+                    <pre class="font-mono text-muted p-3 rounded bg-dark border border-secondary text-break mb-0" id="settingsPublicPemText" style="font-size: 0.74rem; max-height: 160px; overflow-y: auto; background: #03060f !important;">{{ public_key_pem }}</pre>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('api_download_public_key') }}" class="btn btn-cyber-outline">
+                        <i class="bi bi-download"></i> Download vendor_public_key.pem
+                    </a>
+                    <button class="btn btn-cyber-danger" id="btnRotateKeypair">
+                        <i class="bi bi-arrow-repeat"></i> Rotate RSA Keypair
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Protocol Specifications Card -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 1rem;">
+                    <i class="bi bi-shield-check text-cyber-cyan"></i>
+                    NIST Cryptographic Specifications
+                </h5>
+            </div>
+            <div class="p-4" style="font-size: 0.85rem; line-height: 1.6;">
+                <div class="p-2 rounded bg-dark border border-secondary mb-2">
+                    <strong class="text-white">1. Asymmetric Digital Signatures:</strong>
+                    <div class="text-muted font-mono" style="font-size: 0.78rem;">RSA-2048 with PKCS#1 v1.5 padding & SHA-256 message hashing (NIST FIPS 186-4).</div>
+                </div>
+                <div class="p-2 rounded bg-dark border border-secondary mb-2">
+                    <strong class="text-white">2. Symmetric Confidentiality:</strong>
+                    <div class="text-muted font-mono" style="font-size: 0.78rem;">AES-256 in Galois/Counter Mode (GCM) with 96-bit random nonce and 128-bit authentication tag (NIST SP 800-38D).</div>
+                </div>
+                <div class="p-2 rounded bg-dark border border-secondary">
+                    <strong class="text-white">3. Zero-Exposure Key Security:</strong>
+                    <div class="text-muted font-mono" style="font-size: 0.78rem;">Vendor private keys are stored exclusively in <code>keys/vendor_private_key.pem</code> with chmod 0600 filesystem isolation. Never exposed to browser.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Password Change Form Handler
+    const form = document.getElementById('changePasswordForm');
+    const alertBox = document.getElementById('passwordAlertBox');
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const cur = document.getElementById('currentPassword').value;
+            const np = document.getElementById('newPassword').value;
+            const cp = document.getElementById('confirmPassword').value;
+
+            if (np !== cp) {
+                alertBox.className = 'cyber-alert cyber-alert-danger py-2 mb-3';
+                alertBox.classList.remove('d-none');
+                alertBox.innerHTML = '<i class="bi bi-x-circle me-1"></i> New passwords do not match.';
+                return;
+            }
+
+            fetch('/api/settings/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    current_password: cur,
+                    new_password: np,
+                    confirm_password: cp
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alertBox.classList.remove('d-none');
+                if (data.success) {
+                    alertBox.className = 'cyber-alert cyber-alert-success py-2 mb-3';
+                    alertBox.innerHTML = `<i class="bi bi-check-circle me-1"></i> ${data.message}`;
+                    form.reset();
+                } else {
+                    alertBox.className = 'cyber-alert cyber-alert-danger py-2 mb-3';
+                    alertBox.innerHTML = `<i class="bi bi-x-circle me-1"></i> ${data.message}`;
+                }
+            })
+            .catch(err => {
+                alertBox.className = 'cyber-alert cyber-alert-danger py-2 mb-3';
+                alertBox.classList.remove('d-none');
+                alertBox.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i> Request error: ${err}`;
+            });
+        });
+    }
+
+    // Key Rotation Handler
+    const btnRotate = document.getElementById('btnRotateKeypair');
+    if (btnRotate) {
+        btnRotate.addEventListener('click', function () {
+            if (!confirm("Are you sure you want to rotate the Vendor RSA-2048 keypair?\nA fresh public/private keypair will be generated and saved to the backend key vault.")) {
+                return;
+            }
+            fetch('/api/crypto/rotate-keys', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✓ RSA-2048 Keypair Rotated Successfully!\nNew Fingerprint: ${data.fingerprint}`);
+                    window.location.reload();
+                } else {
+                    alert("Rotation failed: " + data.message);
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+});
+</script>
+{% endblock %}

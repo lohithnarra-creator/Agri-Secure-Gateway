@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Secure OTA Firmware Updates | AGRI-SECURE GATEWAY{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-white mb-0" style="letter-spacing: -0.02em;">Secure OTA Firmware Updates</h2>
+            <span class="badge badge-cyber badge-status-online font-mono">SECURE BOOTLOADER MESH</span>
+        </div>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.92rem;">
+            Over-The-Air Firmware Dispatch & Multi-Stage Cryptographic Verification • <span class="text-cyber-green">Zero Hardware Required</span>
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('devices_view') }}" class="btn btn-cyber-outline">
+            <i class="bi bi-cpu"></i> View 10 Virtual Nodes
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: OTA Dispatch Form & Verification Pipeline -->
+    <div class="col-lg-6">
+        <div class="cyber-panel h-100">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-broadcast text-cyber-green"></i>
+                        Over-The-Air Firmware Dispatcher
+                    </h5>
+                    <div class="panel-subtitle">Select node, specify target version, and dispatch with cryptographic proof</div>
+                </div>
+                <span class="badge bg-dark border border-secondary text-cyber-green font-mono">OTA DISPATCH</span>
+            </div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <label class="form-label-cyber">Target Virtual Agri-IoT Node</label>
+                    <select id="otaSelectDevice" class="form-select form-select-cyber">
+                        {% for device in devices %}
+                        <option value="{{ device.id }}" data-version="{{ device.firmware_version }}">
+                            {{ device.id }} — {{ device.name }} (Current: {{ device.firmware_version }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label-cyber">Current Firmware</label>
+                        <input type="text" id="otaCurrentVersion" class="form-control form-control-cyber font-mono" readonly value="{{ devices[0].firmware_version if devices else 'v1.0.4' }}">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label-cyber">Target Firmware Version</label>
+                        <input type="text" id="otaTargetVersion" class="form-control form-control-cyber font-mono" value="v1.0.5">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label-cyber">Firmware Binary Package Description</label>
+                    <input type="text" id="otaBinaryDescription" class="form-control form-control-cyber font-mono" value="AGRI-OS-v1.0.5-KERNEL-PRECISION-AGRICULTURE-SIGNED">
+                </div>
+
+                <!-- Update Progress Bar -->
+                <div class="mb-3 d-none" id="otaProgressWrapper">
+                    <div class="d-flex justify-content-between text-dim font-mono mb-1" style="font-size: 0.74rem;">
+                        <span id="otaProgressStep">Initiating OTA transmission...</span>
+                        <span id="otaProgressPercent">0%</span>
+                    </div>
+                    <div class="cyber-progress">
+                        <div class="cyber-progress-bar" id="otaProgressBar" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Action Demonstration Buttons -->
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-cyber" id="btnDeployValid">
+                        <i class="bi bi-shield-check"></i> 1. Deploy Legitimate Firmware
+                    </button>
+                    <button class="btn btn-cyber-danger" id="btnDeployAttack">
+                        <i class="bi bi-bug-fill"></i> 2. Attack Test (Corrupted Signature)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Node Bootloader Execution Console -->
+    <div class="col-lg-6">
+        <div class="cyber-panel h-100">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-terminal text-cyber-cyan"></i>
+                        Virtual Node Bootloader Security Console
+                    </h5>
+                    <div class="panel-subtitle">Live trace of node-side signature decryption & integrity checks</div>
+                </div>
+                <button class="btn btn-sm btn-cyber-outline py-0 px-2" id="btnClearConsole">
+                    <i class="bi bi-eraser"></i> Clear Console
+                </button>
+            </div>
+            <div class="p-3">
+                <div class="p-3 rounded font-mono" id="otaBootloaderConsole" style="background: #03060f; border: 1px solid rgba(16, 185, 129, 0.2); height: 320px; overflow-y: auto; font-size: 0.8rem; line-height: 1.6;">
+                    <div class="text-dim">> [BOOTLOADER]: Node micro-controller booted. ROM public key verified.</div>
+                    <div class="text-dim">> [LISTENER]: Awaiting cryptographic OTA firmware transmissions on mesh...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Historical OTA Deployments Table -->
+<div class="cyber-panel mb-4">
+    <div class="cyber-panel-header">
+        <div>
+            <h5 class="panel-title">
+                <i class="bi bi-clock-history text-cyber-green"></i>
+                Recent OTA Firmware Update History
+            </h5>
+            <div class="panel-subtitle">Audited firmware deployments and blocked microcode poisoning attempts</div>
+        </div>
+        <a href="{{ url_for('audit_logs_view') }}" class="btn btn-sm btn-cyber-outline py-1 px-3">
+            <i class="bi bi-journal-text"></i> Full Audit Logs
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Target Device</th>
+                    <th>Action</th>
+                    <th>SHA-256 Digest</th>
+                    <th>Signature Status</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in ota_logs %}
+                <tr>
+                    <td class="font-mono text-muted" style="font-size: 0.78rem;">{{ log.timestamp }}</td>
+                    <td>
+                        <strong class="font-mono text-white">{{ log.device_id }}</strong>
+                    </td>
+                    <td class="text-white">{{ log.action }}</td>
+                    <td class="font-mono text-dim" style="font-size: 0.74rem;">{{ log.sha256_hash[:16] }}...</td>
+                    <td class="font-mono text-white" style="font-size: 0.76rem;">{{ log.digital_signature }}</td>
+                    <td>
+                        {% if log.status == 'SUCCESS' %}
+                            <span class="badge badge-cyber badge-status-online">SUCCESS</span>
+                        {% elif log.status == 'REJECTED' %}
+                            <span class="badge badge-cyber badge-status-offline">REJECTED</span>
+                        {% else %}
+                            <span class="badge badge-cyber badge-status-warning">{{ log.status }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No OTA firmware updates logged yet. Run a deployment above to log events!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const otaSelect = document.getElementById('otaSelectDevice');
+    const currentVerInput = document.getElementById('otaCurrentVersion');
+    const consoleEl = document.getElementById('otaBootloaderConsole');
+
+    if (otaSelect && currentVerInput) {
+        otaSelect.addEventListener('change', function () {
+            const opt = otaSelect.options[otaSelect.selectedIndex];
+            currentVerInput.value = opt.getAttribute('data-version') || 'v1.0.4';
+        });
+    }
+
+    function appendConsole(msg, color = "text-muted") {
+        const line = document.createElement('div');
+        line.className = color;
+        line.innerHTML = `> ${msg}`;
+        consoleEl.appendChild(line);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    const btnClear = document.getElementById('btnClearConsole');
+    if (btnClear) {
+        btnClear.addEventListener('click', function () {
+            consoleEl.innerHTML = '<div class="text-dim">> [BOOTLOADER]: Console cleared. Ready.</div>';
+        });
+    }
+
+    // OTA Deployment Workflow
+    function runOtaDeployment(simulateTamper = false) {
+        const deviceId = document.getElementById('otaSelectDevice').value;
+        const version = document.getElementById('otaTargetVersion').value.trim();
+        const progressWrapper = document.getElementById('otaProgressWrapper');
+        const progressBar = document.getElementById('otaProgressBar');
+        const progressStep = document.getElementById('otaProgressStep');
+        const progressPercent = document.getElementById('otaProgressPercent');
+
+        progressWrapper.classList.remove('d-none');
+        progressBar.style.width = '20%';
+        progressPercent.textContent = '20%';
+        progressStep.textContent = 'Hashing firmware image...';
+
+        appendConsole(`----------------------------------------------------------------`, "text-dim");
+        appendConsole(`[TRANSMITTER]: Packaging firmware ${version} for node [${deviceId}]...`, "text-cyber-cyan");
+
+        setTimeout(() => {
+            progressBar.style.width = '50%';
+            progressPercent.textContent = '50%';
+            progressStep.textContent = 'Transmitting over virtual LoRaWAN mesh...';
+            appendConsole(`[MESH]: 256-bit SHA-256 hash calculated & RSA signature appended.`, "text-muted");
+
+            fetch('/api/crypto/ota/deploy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    device_id: deviceId,
+                    version: version,
+                    simulate_tamper: simulateTamper
+                })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, data: data })))
+            .then(({ status, data }) => {
+                if (status === 200 && data.success) {
+                    progressBar.style.width = '100%';
+                    progressBar.style.background = 'linear-gradient(90deg, #10b981, #00ff9d)';
+                    progressPercent.textContent = '100%';
+                    progressStep.textContent = 'Flash verified & completed!';
+
+                    appendConsole(`[BOOTLOADER]: SHA-256 hash verified: ${data.sha256_hash.substring(0, 16)}...`, "text-cyber-green");
+                    appendConsole(`[BOOTLOADER]: Vendor RSA-2048 Public Key Verification: VALID!`, "text-cyber-green fw-bold");
+                    appendConsole(`[BOOTLOADER]: Writing microcode to flash memory bank A...`, "text-cyber-green");
+                    appendConsole(`[SUCCESS]: Node [${deviceId}] firmware upgraded to ${version}.`, "text-cyber-green fw-bold");
+                    alert(`✓ Secure OTA Deployment Succeeded!\n\nNode: ${deviceId}\nNew Firmware Version: ${version}\nSignature: RSA-2048 Validated`);
+                } else {
+                    progressBar.style.width = '100%';
+                    progressBar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+                    progressPercent.textContent = 'REJECTED';
+                    progressStep.textContent = 'Verification failed! Flash aborted.';
+
+                    appendConsole(`[BOOTLOADER]: Computing received binary hash...`, "text-warning");
+                    appendConsole(`[SECURITY ALARM]: RSA-2048 signature mismatch detected!`, "text-danger fw-bold");
+                    appendConsole(`[BOOTLOADER]: Signature does not match vendor root authority!`, "text-danger");
+                    appendConsole(`[PROTECTION]: OTA microcode write aborted! Rolling back to safe state.`, "text-danger fw-bold");
+                    alert(`⚠️ Security Alert: OTA Update Rejected!\n\nNode ${deviceId} bootloader rejected the tampered firmware binary.`);
+                }
+            })
+            .catch(err => {
+                appendConsole(`Transmission error: ${err}`, "text-danger");
+            });
+        }, 600);
+    }
+
+    const btnDeployValid = document.getElementById('btnDeployValid');
+    if (btnDeployValid) {
+        btnDeployValid.addEventListener('click', function () {
+            runOtaDeployment(false);
+        });
+    }
+
+    const btnDeployAttack = document.getElementById('btnDeployAttack');
+    if (btnDeployAttack) {
+        btnDeployAttack.addEventListener('click', function () {
+            runOtaDeployment(true);
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}RSA-2048 Digital Signatures | AGRI-SECURE GATEWAY{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-white mb-0" style="letter-spacing: -0.02em;">RSA-2048 Digital Signatures</h2>
+            <span class="badge badge-cyber badge-status-online font-mono">ASYMMETRIC AUTHENTICATION</span>
+        </div>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.92rem;">
+            Firmware Origin Authenticity & Non-Repudiation • <span class="text-cyber-green">PKCS#1 v1.5 with SHA-256</span>
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('settings_view') }}#keystore-section" class="btn btn-cyber-outline">
+            <i class="bi bi-key-fill"></i> View Public Key Vault
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Interactive Signing & Tampering Studio -->
+    <div class="col-lg-7">
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-patch-check-fill text-cyber-green"></i>
+                        Firmware Signing & Verification Studio
+                    </h5>
+                    <div class="panel-subtitle">Sign firmware using vendor private key and verify with node public key</div>
+                </div>
+                <span class="badge bg-dark border border-secondary text-cyber-green font-mono">LIVE PYTHON ENGINE</span>
+            </div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <label class="form-label-cyber">Firmware Binary Payload / Code Image</label>
+                    <textarea id="rsaPayloadInput" class="form-control form-control-cyber font-mono" rows="4">AGRI-SECURE-FW-v1.0.4-SOIL-IRRIGATION-MESH-SECURE-PAYLOAD-BUILD-8041</textarea>
+                    <div class="text-muted mt-1" style="font-size: 0.8rem;">Enter binary string or use default test payload to execute real RSA operations.</div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <button class="btn btn-cyber" id="btnSignPayload">
+                        <i class="bi bi-pencil-fill"></i> 1. Sign with Private Key
+                    </button>
+                    <button class="btn btn-cyber-cyan" id="btnVerifyPayload">
+                        <i class="bi bi-shield-check"></i> 2. Verify with Public Key
+                    </button>
+                    <button class="btn btn-cyber-danger" id="btnTamperPayload">
+                        <i class="bi bi-bug-fill"></i> 3. Tamper Test (Modify 1 Byte)
+                    </button>
+                </div>
+
+                <!-- Capstone Report Screenshot-Ready Output Panel -->
+                <div id="rsaResultBox" class="screenshot-panel d-none">
+                    <span class="screenshot-panel-badge">REPORT CAPTURE READY</span>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <strong class="text-white d-flex align-items-center gap-2" id="rsaResultTitle">
+                            <i class="bi bi-check-circle-fill text-cyber-green"></i> Cryptographic Output
+                        </strong>
+                        <span class="badge" id="rsaResultBadge">-</span>
+                    </div>
+                    <div class="font-mono mb-3" id="rsaResultMessage" style="font-size: 0.86rem;">-</div>
+
+                    <div class="mb-2">
+                        <span class="text-dim" style="font-size: 0.75rem;">COMPUTED SHA-256 HASH DIGEST:</span>
+                        <div class="font-mono text-cyber-cyan p-2 rounded text-break" style="background: rgba(0,0,0,0.5); font-size: 0.78rem;" id="rsaResultHash">-</div>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-dim" style="font-size: 0.75rem;">BASE64 RSA-2048 DIGITAL SIGNATURE (256 BYTES):</span>
+                        <div class="font-mono text-cyber-green p-2 rounded text-break" style="background: rgba(0,0,0,0.5); font-size: 0.74rem; max-height: 85px; overflow-y: auto;" id="rsaResultSignature">-</div>
+                    </div>
+                    <div class="d-flex justify-content-between text-dim font-mono mt-2" style="font-size: 0.72rem;">
+                        <span>Algorithm: RSA-2048 PKCS#1 v1.5 / SHA-256</span>
+                        <span id="rsaResultTimestamp">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Dedicated Tampering Demo Workflow & Theory -->
+    <div class="col-lg-5">
+        <div class="cyber-panel mb-4">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 1rem;">
+                    <i class="bi bi-diagram-3-fill text-cyber-cyan"></i>
+                    Step-by-Step Tampering Demonstration
+                </h5>
+            </div>
+            <div class="p-4" style="font-size: 0.85rem; line-height: 1.6;">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="badge bg-dark border border-secondary text-cyber-green font-mono p-2">01</div>
+                    <div>
+                        <strong class="text-white d-block">Sign Original Firmware:</strong>
+                        <span class="text-muted" style="font-size: 0.8rem;">Click button 1. The backend hashes the binary with SHA-256 and encrypts the digest with the vendor's 2048-bit private key.</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="badge bg-dark border border-secondary text-cyber-cyan font-mono p-2">02</div>
+                    <div>
+                        <strong class="text-white d-block">Verify Legitimate Binary:</strong>
+                        <span class="text-muted" style="font-size: 0.8rem;">Click button 2. The node decrypts the signature using the vendor's public key and confirms it matches the computed hash.</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-3">
+                    <div class="badge bg-dark border border-danger text-danger font-mono p-2">03</div>
+                    <div>
+                        <strong class="text-danger d-block">Tamper Attack & Rejection:</strong>
+                        <span class="text-muted" style="font-size: 0.8rem;">Click button 3. A single byte is mutated. The public key decryption fails to match the new hash, instantly aborting firmware flashing!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendor Root Authority Public Fingerprint -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 0.95rem;">
+                    <i class="bi bi-shield-check text-cyber-green"></i>
+                    Vendor Public Key Reference
+                </h5>
+            </div>
+            <div class="p-3">
+                <div class="text-dim mb-1" style="font-size: 0.74rem;">ROOT CA PUBLIC KEY FINGERPRINT:</div>
+                <div class="font-mono text-cyber-green p-2 rounded bg-dark border border-secondary text-break mb-3" style="font-size: 0.82rem;">
+                    {{ fingerprint }}
+                </div>
+                <div class="text-muted" style="font-size: 0.8rem;">
+                    Private Key is secured in <code>keys/vendor_private_key.pem</code> on the backend. Only the public key is distributed to field devices.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentSignature = "";
+
+    const btnSign = document.getElementById('btnSignPayload');
+    if (btnSign) {
+        btnSign.addEventListener('click', function () {
+            const payload = document.getElementById('rsaPayloadInput').value;
+            fetch('/api/crypto/sign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payload: payload })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    currentSignature = data.signature_b64;
+                    const box = document.getElementById('rsaResultBox');
+                    box.classList.remove('d-none');
+                    document.getElementById('rsaResultTitle').innerHTML = '<i class="bi bi-check-circle-fill text-cyber-green"></i> RSA-2048 Signature Generated';
+                    document.getElementById('rsaResultBadge').className = 'badge badge-cyber badge-status-online';
+                    document.getElementById('rsaResultBadge').textContent = 'SUCCESS';
+                    document.getElementById('rsaResultMessage').className = 'text-cyber-green font-mono mb-2';
+                    document.getElementById('rsaResultMessage').textContent = 'Payload successfully signed using vendor RSA-2048 private key.';
+                    document.getElementById('rsaResultHash').textContent = data.sha256_hash;
+                    document.getElementById('rsaResultSignature').textContent = data.signature_b64;
+                    document.getElementById('rsaResultTimestamp').textContent = `Timestamp: ${data.timestamp}`;
+                } else {
+                    alert("Signing failed: " + data.message);
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    const btnVerify = document.getElementById('btnVerifyPayload');
+    if (btnVerify) {
+        btnVerify.addEventListener('click', function () {
+            const payload = document.getElementById('rsaPayloadInput').value;
+            if (!currentSignature) {
+                alert("Please click '1. Sign with Private Key' first to generate a digital signature.");
+                return;
+            }
+            fetch('/api/crypto/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payload: payload, signature_b64: currentSignature })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const box = document.getElementById('rsaResultBox');
+                box.classList.remove('d-none');
+                document.getElementById('rsaResultHash').textContent = data.computed_sha256;
+                document.getElementById('rsaResultSignature').textContent = currentSignature;
+                document.getElementById('rsaResultTimestamp').textContent = `Verified: ${new Date().toLocaleTimeString()}`;
+
+                if (data.valid) {
+                    document.getElementById('rsaResultTitle').innerHTML = '<i class="bi bi-shield-check text-cyber-green"></i> Signature Verified (SUCCESS)';
+                    document.getElementById('rsaResultBadge').className = 'badge badge-cyber badge-status-online';
+                    document.getElementById('rsaResultBadge').textContent = 'VERIFIED';
+                    document.getElementById('rsaResultMessage').className = 'text-cyber-green font-mono mb-2';
+                    document.getElementById('rsaResultMessage').textContent = data.message;
+                } else {
+                    document.getElementById('rsaResultTitle').innerHTML = '<i class="bi bi-shield-slash-fill text-danger"></i> Signature Rejected (FAILED)';
+                    document.getElementById('rsaResultBadge').className = 'badge badge-cyber badge-status-offline';
+                    document.getElementById('rsaResultBadge').textContent = 'REJECTED';
+                    document.getElementById('rsaResultMessage').className = 'text-danger font-mono mb-2';
+                    document.getElementById('rsaResultMessage').textContent = data.message;
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    const btnTamper = document.getElementById('btnTamperPayload');
+    if (btnTamper) {
+        btnTamper.addEventListener('click', function () {
+            const payloadInput = document.getElementById('rsaPayloadInput');
+            payloadInput.value = payloadInput.value + "_MUTATED_BYTE_0xDEADBEEF";
+            alert("⚠️ Tampering Simulated!\nAdversary modified firmware payload in transit. Triggering verification to prove cryptographic rejection...");
+            if (btnVerify) btnVerify.click();
+        });
+    }
+});
+</script>
+{% endblock %}

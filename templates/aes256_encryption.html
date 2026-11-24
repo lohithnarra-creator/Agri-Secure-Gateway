@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}AES-256-GCM Firmware Encryption | AGRI-SECURE GATEWAY{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-white mb-0" style="letter-spacing: -0.02em;">AES-256-GCM Firmware Encryption</h2>
+            <span class="badge badge-cyber badge-status-warning font-mono">AUTHENTICATED CIPHER</span>
+        </div>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.92rem;">
+            Confidentiality & Galois/Counter Mode Integrity • <span class="text-cyber-green">96-Bit Nonce & 128-Bit Auth Tag</span>
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('ota_updates_view') }}" class="btn btn-cyber">
+            <i class="bi bi-arrow-up-circle-fill"></i> Secure OTA Deployments
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Interactive AES-256-GCM Studio -->
+    <div class="col-lg-7">
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-lock-fill text-warning"></i>
+                        AES-256-GCM Encryption & Decryption Studio
+                    </h5>
+                    <div class="panel-subtitle">Protects proprietary firmware microcode against unauthorized reverse-engineering</div>
+                </div>
+                <span class="badge bg-dark border border-secondary text-warning font-mono">GCM MODE</span>
+            </div>
+            <div class="p-4">
+                <div class="mb-3">
+                    <label class="form-label-cyber">Plaintext Firmware Payload</label>
+                    <textarea id="aesPlaintextInput" class="form-control form-control-cyber font-mono" rows="4">AGRI-FIRMWARE-SECRET-MICROCODE-PRECISION-DRIP-ALGORITHM-SDG2-V104</textarea>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <button class="btn btn-cyber" id="btnRunAesEncrypt">
+                        <i class="bi bi-lock-fill"></i> 1. Encrypt with AES-256-GCM
+                    </button>
+                    <button class="btn btn-cyber-cyan" id="btnRunAesDecrypt">
+                        <i class="bi bi-unlock-fill"></i> 2. Decrypt & Verify Auth Tag
+                    </button>
+                    <button class="btn btn-cyber-danger" id="btnTamperAesCipher">
+                        <i class="bi bi-bug-fill"></i> 3. Tamper Test (Mutate Tag)
+                    </button>
+                </div>
+
+                <!-- Capstone Report Screenshot-Ready Output Panel -->
+                <div id="aesResultBox" class="screenshot-panel d-none">
+                    <span class="screenshot-panel-badge">REPORT CAPTURE READY</span>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <strong class="text-white d-flex align-items-center gap-2" id="aesResultTitle">
+                            <i class="bi bi-shield-lock-fill text-warning"></i> AES-256-GCM Cryptographic Parameters
+                        </strong>
+                        <span class="badge" id="aesResultBadge">-</span>
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <span class="text-dim" style="font-size: 0.75rem;">NONCE / INITIALIZATION VECTOR (96 BITS):</span>
+                            <div class="font-mono text-muted p-2 rounded text-break" style="background: rgba(0,0,0,0.5); font-size: 0.75rem;" id="aesNonceDisplay">-</div>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="text-dim" style="font-size: 0.75rem;">GCM AUTHENTICATION TAG (128 BITS):</span>
+                            <div class="font-mono text-cyber-cyan p-2 rounded text-break" style="background: rgba(0,0,0,0.5); font-size: 0.75rem;" id="aesTagDisplay">-</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="text-dim" style="font-size: 0.75rem;">CIPHERTEXT (BASE64 ENCRYPTED):</span>
+                        <div class="font-mono text-warning p-2 rounded text-break" style="background: rgba(0,0,0,0.5); font-size: 0.75rem; max-height: 75px; overflow-y: auto;" id="aesCipherDisplay">-</div>
+                    </div>
+
+                    <div>
+                        <span class="text-dim" style="font-size: 0.75rem;">DECRYPTED PLAINTEXT OUTPUT:</span>
+                        <div class="font-mono text-cyber-green p-2 rounded text-break" style="background: rgba(0,0,0,0.5); font-size: 0.82rem;" id="aesPlaintextDisplay">
+                            Click '2. Decrypt & Verify Auth Tag' to test.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: AES-GCM Architecture & Tag Security Theory -->
+    <div class="col-lg-5">
+        <div class="cyber-panel mb-4">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title" style="font-size: 1rem;">
+                    <i class="bi bi-shield-check text-cyber-green"></i>
+                    Why AES-GCM for Agri-Firmware?
+                </h5>
+            </div>
+            <div class="p-4" style="font-size: 0.85rem; line-height: 1.6;">
+                <p class="text-muted">
+                    Traditional ciphers like CBC only provide confidentiality, meaning an active adversary could alter encrypted blocks without detection.
+                </p>
+                <div class="p-3 rounded bg-dark border border-secondary mb-3">
+                    <strong class="text-warning d-block mb-1">Authenticated Encryption (AEAD):</strong>
+                    <ul class="text-muted ps-3 mb-0" style="font-size: 0.8rem;">
+                        <li><strong>Confidentiality:</strong> 256-bit key ensures eavesdroppers cannot extract sensor calibrations or algorithms.</li>
+                        <li><strong>Authentication Tag:</strong> 128-bit MAC tag is computed over the ciphertext and nonce.</li>
+                        <li><strong>Tamper Proof:</strong> If an adversary flips even 1 bit in the ciphertext or tag, the mathematical validation fails and decryption is rejected!</li>
+                    </ul>
+                </div>
+                <div class="text-dim font-mono" style="font-size: 0.74rem;">
+                    Key Storage: Secured in <code>keys/firmware_aes_256.key</code> (Never exposed to client-side).
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentCiphertext = "";
+    let currentNonce = "";
+    let currentTag = "";
+
+    const btnEncrypt = document.getElementById('btnRunAesEncrypt');
+    if (btnEncrypt) {
+        btnEncrypt.addEventListener('click', function () {
+            const plaintext = document.getElementById('aesPlaintextInput').value;
+            fetch('/api/crypto/aes/encrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plaintext: plaintext })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    currentCiphertext = data.ciphertext_b64;
+                    currentNonce = data.nonce_b64;
+                    currentTag = data.tag_b64;
+
+                    const box = document.getElementById('aesResultBox');
+                    box.classList.remove('d-none');
+                    document.getElementById('aesResultTitle').innerHTML = '<i class="bi bi-lock-fill text-warning"></i> AES-256-GCM Ciphertext Generated';
+                    document.getElementById('aesResultBadge').className = 'badge badge-cyber badge-status-warning';
+                    document.getElementById('aesResultBadge').textContent = 'ENCRYPTED';
+                    document.getElementById('aesNonceDisplay').textContent = data.nonce_b64;
+                    document.getElementById('aesTagDisplay').textContent = data.tag_b64;
+                    document.getElementById('aesCipherDisplay').textContent = data.ciphertext_b64;
+                    document.getElementById('aesPlaintextDisplay').textContent = "Ready for decryption. Click '2. Decrypt & Verify Auth Tag' to test.";
+                } else {
+                    alert("Encryption error: " + data.message);
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    const btnDecrypt = document.getElementById('btnRunAesDecrypt');
+    if (btnDecrypt) {
+        btnDecrypt.addEventListener('click', function () {
+            if (!currentCiphertext || !currentNonce || !currentTag) {
+                alert("Please click '1. Encrypt with AES-256-GCM' first to generate encrypted ciphertext.");
+                return;
+            }
+            fetch('/api/crypto/aes/decrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ciphertext_b64: currentCiphertext,
+                    nonce_b64: currentNonce,
+                    tag_b64: currentTag
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const box = document.getElementById('aesResultBox');
+                box.classList.remove('d-none');
+
+                if (data.success) {
+                    document.getElementById('aesResultTitle').innerHTML = '<i class="bi bi-shield-check text-cyber-green"></i> AES-GCM Decryption Succeeded';
+                    document.getElementById('aesResultBadge').className = 'badge badge-cyber badge-status-online';
+                    document.getElementById('aesResultBadge').textContent = 'AUTHENTICATED';
+                    document.getElementById('aesPlaintextDisplay').className = 'font-mono text-cyber-green p-2 rounded text-break';
+                    document.getElementById('aesPlaintextDisplay').textContent = data.plaintext;
+                } else {
+                    document.getElementById('aesResultTitle').innerHTML = '<i class="bi bi-shield-x text-danger"></i> AES-GCM Authentication Failed';
+                    document.getElementById('aesResultBadge').className = 'badge badge-cyber badge-status-offline';
+                    document.getElementById('aesResultBadge').textContent = 'TAG REJECTED';
+                    document.getElementById('aesPlaintextDisplay').className = 'font-mono text-danger p-2 rounded text-break';
+                    document.getElementById('aesPlaintextDisplay').textContent = data.message;
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    const btnTamper = document.getElementById('btnTamperAesCipher');
+    if (btnTamper) {
+        btnTamper.addEventListener('click', function () {
+            if (!currentTag) {
+                alert("Please encrypt a payload first.");
+                return;
+            }
+            // Mutate authentication tag
+            currentTag = currentTag.slice(0, -3) + "XYZ";
+            document.getElementById('aesTagDisplay').textContent = currentTag + " (MUTATED BY ADVERSARY)";
+            alert("⚠️ Tampering Simulated!\nAdversary mutated the 128-bit authentication tag. Triggering decryption now to prove that AES-GCM rejects tampered data...");
+            if (btnDecrypt) btnDecrypt.click();
+        });
+    }
+});
+</script>
+{% endblock %}

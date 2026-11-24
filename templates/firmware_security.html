@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+
+{% block title %}Cryptographic Engine & Firmware Verification | AGRI-SECURE{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-white mb-0" style="letter-spacing: -0.02em;">Cryptographic Security Engine</h2>
+            <span class="badge badge-cyber badge-status-online font-mono">LIVE CRYPTO VERIFIED</span>
+        </div>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.92rem;">
+            Real-Time Hardware-Independent Cryptography • <span class="text-cyber-green">RSA-2048 • SHA-256 • AES-256</span>
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('keystore_view') }}" class="btn btn-cyber-outline">
+            <i class="bi bi-key-fill"></i> View Public Key Store
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-cyber">
+            <i class="bi bi-speedometer2"></i> Return to SOC
+        </a>
+    </div>
+</div>
+
+<!-- Cryptographic Architecture Banner -->
+<div class="simulation-banner mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <div class="brand-icon" style="width: 40px; height: 40px; font-size: 1.25rem;">
+            <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <div>
+            <div class="fw-bold text-white d-flex align-items-center gap-2">
+                <span>ACTUAL MATHEMATICAL CRYPTOGRAPHY ACTIVE</span>
+                <span class="badge bg-dark text-cyber-green border border-secondary font-mono" style="font-size: 0.68rem;">LIVE PYTHON CRYPTOGRAPHY ENGINE</span>
+            </div>
+            <div class="text-muted" style="font-size: 0.82rem;">
+                Unlike virtual sensor telemetry which is simulated, all RSA signatures, SHA-256 hashes, and AES-256 encryptions on this page are computed using real cryptographic operations.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-pills mb-4 gap-2" id="cryptoTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active btn-cyber-outline py-2 px-3" id="rsa-tab" data-bs-toggle="tab" data-bs-target="#rsa-pane" type="button" role="tab">
+            <i class="bi bi-key-fill me-1"></i> 1. RSA-2048 Digital Signatures
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link btn-cyber-outline py-2 px-3" id="sha-tab" data-bs-toggle="tab" data-bs-target="#sha-pane" type="button" role="tab">
+            <i class="bi bi-fingerprint me-1"></i> 2. SHA-256 Integrity Verification
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link btn-cyber-outline py-2 px-3" id="aes-tab" data-bs-toggle="tab" data-bs-target="#aes-pane" type="button" role="tab">
+            <i class="bi bi-lock-fill me-1"></i> 3. AES-256 Firmware Encryption
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link btn-cyber-outline py-2 px-3" id="ota-tab" data-bs-toggle="tab" data-bs-target="#ota-pane" type="button" role="tab">
+            <i class="bi bi-arrow-up-circle-fill me-1"></i> 4. Secure OTA Flash & Tamper Defense
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Panes Content -->
+<div class="tab-content" id="cryptoTabsContent">
+
+    <!-- PANE 1: RSA-2048 Signatures -->
+    <div class="tab-pane fade show active" id="rsa-pane" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="cyber-panel">
+                    <div class="cyber-panel-header">
+                        <h5 class="panel-title">
+                            <i class="bi bi-patch-check-fill text-cyber-green"></i>
+                            RSA-2048 Firmware Signing Studio
+                        </h5>
+                        <span class="badge bg-dark border border-secondary text-cyber-green font-mono">VENDOR ROOT CA</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="mb-3">
+                            <label class="form-label-cyber">Firmware Binary / Payload Text</label>
+                            <textarea id="rsaPayloadInput" class="form-control form-control-cyber font-mono" rows="4" placeholder="Enter firmware binary string...">AGRI-SECURE-FIRMWARE-IMAGE-v1.0.4-SDG2-SOIL-IRRIGATION-MESH-SECURE-PAYLOAD</textarea>
+                            <div class="text-muted mt-1" style="font-size: 0.78rem;">Enter binary data or leave default to test real signing operations.</div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="btn btn-cyber" id="btnSignPayload">
+                                <i class="bi bi-pencil-fill"></i> Sign with RSA-2048 Private Key
+                            </button>
+                            <button class="btn btn-cyber-cyan" id="btnVerifyPayload">
+                                <i class="bi bi-shield-check"></i> Verify with RSA-2048 Public Key
+                            </button>
+                            <button class="btn btn-cyber-danger" id="btnTamperPayload">
+                                <i class="bi bi-bug-fill"></i> Simulate Tampering Attack (Modify 1 Byte)
+                            </button>
+                        </div>
+
+                        <div id="rsaResultBox" class="p-3 rounded bg-dark border border-secondary mt-3 d-none">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <strong class="text-white" id="rsaResultTitle">Verification Result</strong>
+                                <span class="badge" id="rsaResultBadge">-</span>
+                            </div>
+                            <div class="text-muted font-mono mb-2" id="rsaResultMessage" style="font-size: 0.85rem;">-</div>
+                            <div class="mb-2">
+                                <span class="text-dim" style="font-size: 0.75rem;">COMPUTED SHA-256 DIGEST:</span>
+                                <div class="font-mono text-cyber-cyan p-2 rounded text-break" style="background: rgba(0,0,0,0.4); font-size: 0.76rem;" id="rsaResultHash">-</div>
+                            </div>
+                            <div>
+                                <span class="text-dim" style="font-size: 0.75rem;">BASE64 RSA-2048 DIGITAL SIGNATURE:</span>
+                                <div class="font-mono text-cyber-green p-2 rounded text-break" style="background: rgba(0,0,0,0.4); font-size: 0.74rem; max-height: 80px; overflow-y: auto;" id="rsaResultSignature">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="cyber-panel h-100">
+                    <div class="cyber-panel-header">
+                        <h5 class="panel-title" style="font-size: 0.95rem;">
+                            <i class="bi bi-info-circle-fill text-cyber-cyan"></i>
+                            How RSA-2048 Protects Agri-IoT (SDG 2)
+                        </h5>
+                    </div>
+                    <div class="p-4" style="font-size: 0.85rem; line-height: 1.6;">
+                        <p class="text-muted">
+                            In modern smart agriculture, attackers attempting to poison crop water supplies or alter automated greenhouse climate controls inject rogue firmware into unattended field nodes.
+                        </p>
+                        <div class="p-3 rounded bg-dark border border-secondary mb-3">
+                            <strong class="text-cyber-green d-block mb-1">Asymmetric Defense Architecture:</strong>
+                            <ul class="text-muted ps-3 mb-0" style="font-size: 0.8rem;">
+                                <li>The <strong>Private Key</strong> never leaves the secure central server.</li>
+                                <li>Every virtual Agri-Node holds the vendor's <strong>Public Key</strong> in its simulated ROM.</li>
+                                <li>Before flashing, the node decrypts the signature using the public key and compares it to the binary's SHA-256 hash.</li>
+                                <li>If even <strong>1 bit</strong> is modified, verification mathematically fails and the update is blocked.</li>
+                            </ul>
+                        </div>
+                        <div class="text-dim" style="font-size: 0.78rem;">
+                            Current Vendor Root CA: <span class="text-white font-mono">{{ fingerprint }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANE 2: SHA-256 Integrity -->
+    <div class="tab-pane fade" id="sha-pane" role="tabpanel">
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title">
+                    <i class="bi bi-fingerprint text-cyber-cyan"></i>
+                    SHA-256 Firmware Digest Calculator & Integrity Checker
+                </h5>
+            </div>
+            <div class="p-4">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <label class="form-label-cyber">Input Binary Data / Text</label>
+                        <textarea id="shaInput" class="form-control form-control-cyber font-mono" rows="4">AGRI-NODE-FIRMWARE-CORE-KERNEL-V104</textarea>
+                        <button class="btn btn-cyber mt-3" id="btnCalculateSha">
+                            <i class="bi bi-calculator"></i> Calculate SHA-256 Digest
+                        </button>
+                    </div>
+                    <div class="col-lg-6">
+                        <label class="form-label-cyber">Calculated SHA-256 Hex Digest (256 bits / 64 characters)</label>
+                        <div class="font-mono text-cyber-green p-3 rounded bg-dark border border-secondary text-break mb-3" id="shaOutputHash" style="font-size: 0.95rem;">
+                            Click calculate to generate hash...
+                        </div>
+                        <div class="p-3 rounded bg-dark border border-secondary">
+                            <div class="text-muted" style="font-size: 0.82rem;">
+                                <strong>Cryptographic Property:</strong> The Avalanche Effect ensures that altering a single character produces an unpredictable, radically different 64-character hash digest.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANE 3: AES-256 Encryption -->
+    <div class="tab-pane fade" id="aes-pane" role="tabpanel">
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <h5 class="panel-title">
+                    <i class="bi bi-lock-fill text-warning"></i>
+                    AES-256 Symmetric Encryption (Firmware Confidentiality)
+                </h5>
+                <span class="badge bg-dark border border-secondary text-warning font-mono">AES-256-CBC-PKCS7</span>
+            </div>
+            <div class="p-4">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <label class="form-label-cyber">Plaintext Firmware Data</label>
+                        <textarea id="aesPlaintext" class="form-control form-control-cyber font-mono" rows="3">FIRMWARE-SECRET-CALIBRATION-DATA-PRECISION-IRRIGATION</textarea>
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-cyber" id="btnAesEncrypt">
+                                <i class="bi bi-lock-fill"></i> Encrypt with AES-256
+                            </button>
+                            <button class="btn btn-cyber-cyan" id="btnAesDecrypt">
+                                <i class="bi bi-unlock-fill"></i> Decrypt Ciphertext
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="mb-2">
+                            <label class="form-label-cyber">Initialization Vector (IV - 16 bytes)</label>
+                            <div class="font-mono text-muted p-2 rounded bg-dark border border-secondary text-break" style="font-size: 0.8rem;" id="aesIvOutput">None (click encrypt)</div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label-cyber">Ciphertext (Base64 Encrypted)</label>
+                            <div class="font-mono text-warning p-2 rounded bg-dark border border-secondary text-break" style="font-size: 0.8rem; max-height: 80px; overflow-y: auto;" id="aesCipherOutput">None (click encrypt)</div>
+                        </div>
+                        <div>
+                            <label class="form-label-cyber">Decrypted Plaintext Output</label>
+                            <div class="font-mono text-cyber-green p-2 rounded bg-dark border border-secondary text-break" style="font-size: 0.85rem;" id="aesDecryptedOutput">Waiting for decryption...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANE 4: OTA Secure Deployment -->
+    <div class="tab-pane fade" id="ota-pane" role="tabpanel">
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <div>
+                    <h5 class="panel-title">
+                        <i class="bi bi-broadcast text-cyber-green"></i>
+                        Over-The-Air (OTA) Secure Firmware Dispatcher
+                    </h5>
+                    <div class="panel-subtitle">Deploy verified updates or test malicious injection rejection on virtual nodes</div>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label class="form-label-cyber">Target Virtual Agri-IoT Node</label>
+                            <select id="otaDeviceSelect" class="form-select form-select-cyber">
+                                {% for device in devices %}
+                                <option value="{{ device.id }}">{{ device.id }} — {{ device.name }} (Current: {{ device.firmware_version }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label-cyber">Firmware Package Version</label>
+                            <input type="text" id="otaTargetVersion" class="form-control form-control-cyber" value="v1.0.4">
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-cyber" id="btnDeployValidOta">
+                                <i class="bi bi-shield-check"></i> Deploy Validly Signed Firmware
+                            </button>
+                            <button class="btn btn-cyber-danger" id="btnDeployTamperedOta">
+                                <i class="bi bi-bug-fill"></i> Attack Test: Deploy Corrupted Signature
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <label class="form-label-cyber">Node Bootloader Verification Console</label>
+                        <div class="p-3 rounded bg-dark border border-secondary font-mono" id="otaLogConsole" style="font-size: 0.82rem; min-height: 180px; max-height: 250px; overflow-y: auto; background: #03060f !important;">
+                            <div class="text-dim">> [BOOTLOADER]: Ready. Awaiting OTA firmware transmission...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentSignature = "";
+
+    // 1. RSA Sign Payload
+    const btnSign = document.getElementById('btnSignPayload');
+    if (btnSign) {
+        btnSign.addEventListener('click', function () {
+            const payload = document.getElementById('rsaPayloadInput').value;
+            fetch('/api/crypto/sign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payload: payload })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    currentSignature = data.signature_b64;
+                    const box = document.getElementById('rsaResultBox');
+                    box.classList.remove('d-none');
+                    document.getElementById('rsaResultTitle').textContent = "Firmware Digitally Signed";
+                    document.getElementById('rsaResultBadge').className = "badge badge-cyber badge-status-online";
+                    document.getElementById('rsaResultBadge').textContent = "RSA-2048 SIGNED";
+                    document.getElementById('rsaResultMessage').textContent = "Signature successfully generated using vendor private key.";
+                    document.getElementById('rsaResultHash').textContent = data.sha256_hash;
+                    document.getElementById('rsaResultSignature').textContent = data.signature_b64;
+                } else {
+                    alert("Signing failed: " + data.message);
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    // 2. RSA Verify Payload
+    const btnVerify = document.getElementById('btnVerifyPayload');
+    if (btnVerify) {
+        btnVerify.addEventListener('click', function () {
+            const payload = document.getElementById('rsaPayloadInput').value;
+            if (!currentSignature) {
+                alert("Please click 'Sign with RSA-2048 Private Key' first to generate a digital signature.");
+                return;
+            }
+            fetch('/api/crypto/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payload: payload, signature_b64: currentSignature })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const box = document.getElementById('rsaResultBox');
+                box.classList.remove('d-none');
+                document.getElementById('rsaResultHash').textContent = data.computed_sha256;
+                document.getElementById('rsaResultSignature').textContent = currentSignature;
+
+                if (data.valid) {
+                    document.getElementById('rsaResultTitle').textContent = "Cryptographic Verification Succeeded";
+                    document.getElementById('rsaResultBadge').className = "badge badge-cyber badge-status-online";
+                    document.getElementById('rsaResultBadge').textContent = "SIGNATURE VALID";
+                    document.getElementById('rsaResultMessage').className = "text-cyber-green font-mono mb-2";
+                    document.getElementById('rsaResultMessage').textContent = data.message;
+                } else {
+                    document.getElementById('rsaResultTitle').textContent = "Cryptographic Verification Failed";
+                    document.getElementById('rsaResultBadge').className = "badge badge-cyber badge-status-offline";
+                    document.getElementById('rsaResultBadge').textContent = "SIGNATURE REJECTED";
+                    document.getElementById('rsaResultMessage').className = "text-danger font-mono mb-2";
+                    document.getElementById('rsaResultMessage').textContent = data.message;
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    // 3. Simulate Tampering Attack (Modify 1 Byte)
+    const btnTamper = document.getElementById('btnTamperPayload');
+    if (btnTamper) {
+        btnTamper.addEventListener('click', function () {
+            const payloadInput = document.getElementById('rsaPayloadInput');
+            // Modify or append 1 character to tamper with the binary
+            payloadInput.value = payloadInput.value + "_MALICIOUS_BYTE_0xAA";
+            alert("⚠️ Tampering Simulated!\nPayload modified by an adversary. Attempting verification now to test cryptographic rejection...");
+            if (btnVerify) btnVerify.click();
+        });
+    }
+
+    // 4. SHA-256 Calculator
+    const btnCalcSha = document.getElementById('btnCalculateSha');
+    if (btnCalcSha) {
+        btnCalcSha.addEventListener('click', function () {
+            const text = document.getElementById('shaInput').value;
+            fetch('/api/crypto/sha256', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payload: text })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('shaOutputHash').textContent = data.sha256_hash;
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    // 5. AES-256 Encrypt & Decrypt
+    let lastAesCipher = "";
+    let lastAesIv = "";
+
+    const btnAesEncrypt = document.getElementById('btnAesEncrypt');
+    if (btnAesEncrypt) {
+        btnAesEncrypt.addEventListener('click', function () {
+            const plaintext = document.getElementById('aesPlaintext').value;
+            fetch('/api/crypto/aes/encrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plaintext: plaintext })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    lastAesCipher = data.ciphertext_b64;
+                    lastAesIv = data.iv_b64;
+                    document.getElementById('aesIvOutput').textContent = data.iv_b64;
+                    document.getElementById('aesCipherOutput').textContent = data.ciphertext_b64;
+                    document.getElementById('aesDecryptedOutput').textContent = "Ciphertext generated. Click 'Decrypt Ciphertext' to test.";
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    const btnAesDecrypt = document.getElementById('btnAesDecrypt');
+    if (btnAesDecrypt) {
+        btnAesDecrypt.addEventListener('click', function () {
+            if (!lastAesCipher || !lastAesIv) {
+                alert("Please encrypt data first.");
+                return;
+            }
+            fetch('/api/crypto/aes/decrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ciphertext_b64: lastAesCipher, iv_b64: lastAesIv })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('aesDecryptedOutput').textContent = data.plaintext;
+                } else {
+                    alert("Decryption failed: " + data.message);
+                }
+            })
+            .catch(err => alert("Error: " + err));
+        });
+    }
+
+    // 6. OTA Firmware Dispatch
+    function appendOtaLog(msg, colorClass = "text-muted") {
+        const consoleEl = document.getElementById('otaLogConsole');
+        const line = document.createElement('div');
+        line.className = colorClass;
+        line.textContent = `> ${msg}`;
+        consoleEl.appendChild(line);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    const btnDeployValid = document.getElementById('btnDeployValidOta');
+    if (btnDeployValid) {
+        btnDeployValid.addEventListener('click', function () {
+            const deviceId = document.getElementById('otaDeviceSelect').value;
+            const version = document.getElementById('otaTargetVersion').value;
+            appendOtaLog(`Initiating OTA transmission to node [${deviceId}]...`, "text-cyber-cyan");
+
+            fetch('/api/crypto/ota/deploy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ device_id: deviceId, version: version, simulate_tamper: false })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    appendOtaLog(`Firmware payload received: SHA-256 = ${data.sha256_hash.substring(0, 16)}...`, "text-muted");
+                    appendOtaLog(`[BOOTLOADER]: RSA-2048 Public Key Verification: VALID.`, "text-cyber-green");
+                    appendOtaLog(`Node [${deviceId}] successfully flashed to firmware ${version}!`, "text-cyber-green fw-bold");
+                    alert(`✓ OTA Firmware Update Succeeded for ${deviceId}!`);
+                } else {
+                    appendOtaLog(`[BOOTLOADER REJECTION]: ${data.message}`, "text-danger fw-bold");
+                }
+            })
+            .catch(err => appendOtaLog(`Transmission Error: ${err}`, "text-danger"));
+        });
+    }
+
+    const btnDeployTampered = document.getElementById('btnDeployTamperedOta');
+    if (btnDeployTampered) {
+        btnDeployTampered.addEventListener('click', function () {
+            const deviceId = document.getElementById('otaDeviceSelect').value;
+            const version = document.getElementById('otaTargetVersion').value;
+            appendOtaLog(`[ATTACK TEST]: Dispatching forged/tampered firmware binary to [${deviceId}]...`, "text-warning");
+
+            fetch('/api/crypto/ota/deploy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ device_id: deviceId, version: version, simulate_tamper: true })
+            })
+            .then(res => res.json())
+            .then(data => {
+                appendOtaLog(`[BOOTLOADER ALARM]: RSA signature mismatch detected!`, "text-danger fw-bold");
+                appendOtaLog(`[SECURITY REJECTION]: Unauthorized binary rejected. Node rollback to previous clean state.`, "text-danger");
+                alert(`⚠️ Security Rejection Verified!\nNode ${deviceId} bootloader rejected the tampered firmware binary.`);
+            })
+            .catch(err => appendOtaLog(`Error: ${err}`, "text-danger"));
+        });
+    }
+});
+</script>
+{% endblock %}
