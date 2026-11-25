@@ -111,7 +111,7 @@ The platform organizes every major capability into separate, dedicated pages wit
 This project is fully configured for production deployment on [Render](https://render.com) using **Gunicorn** and **Render Blueprints**.
 
 ### Production Configuration Files Included:
-- **`Procfile`**: Defines the WSGI server command (`web: gunicorn app:app --workers 2 --threads 2 --timeout 60`).
+- **`Procfile`**: Defines the WSGI server command (`web: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 60`).
 - **`render.yaml`**: Infrastructure-as-code blueprint for 1-click deployment on Render.
 - **`runtime.txt`**: Specifies standard Python runtime (`python-3.11.9`).
 - **`.env.example`**: Complete template for production environment variables.
